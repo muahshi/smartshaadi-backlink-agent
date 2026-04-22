@@ -1,0 +1,59 @@
+name: 🔗 SmartShaadi Weekly Backlink Scan
+
+on:
+  # Har Monday 9 AM IST (3:30 AM UTC)
+  schedule:
+    - cron: '30 3 * * 1'
+
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      cities:
+        description: 'Cities (comma-separated, e.g. Delhi,Mumbai,Jaipur)'
+        required: false
+        default: 'Delhi,Mumbai,Bangalore,Jaipur,Hyderabad'
+      max_results:
+        description: 'Max results to find'
+        required: false
+        default: '30'
+
+jobs:
+  backlink-scan:
+    name: Find Backlink Opportunities
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Install deps
+        run: npm install
+
+      - name: 🔗 Run Backlink Agent
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.SMARTSHAADI_GITHUB_TOKEN }}
+          CITIES: ${{ github.event.inputs.cities || 'Delhi,Mumbai,Bangalore,Jaipur,Hyderabad,Chennai,Kolkata,Lucknow' }}
+          MAX_RESULTS: ${{ github.event.inputs.max_results || '30' }}
+        run: node scripts/run-agent.js
+
+      - name: 📊 Summary
+        if: always()
+        run: |
+          echo "## 🔗 Backlink Scan Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Run Date | $(date +'%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Target | smartshaadi.online |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cities | ${{ github.event.inputs.cities || 'Delhi,Mumbai,Bangalore,Jaipur,Hyderabad' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[📄 View backlink_leads.md](https://github.com/${{ github.repository }}/blob/main/backlink_leads.md)" >> $GITHUB_STEP_SUMMARY
+

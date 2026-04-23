@@ -1,8 +1,4 @@
-import type { NextConfig } from 'next';
+/** @type {import('next').NextConfig} */
+const nextConfig = {};
 
-const nextConfig: NextConfig = {
-  // Edge runtime ke liye
-  experimental: {},
-};
-
-export default nextConfig;
+module.exports = nextConfig;
